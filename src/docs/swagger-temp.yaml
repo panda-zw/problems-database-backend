@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: API documentation for Problems and Solutions application
 servers:
-  - url: ${API_BASE_URL}
+  - url: http://localhost:7000
     description: Development server
     variables:
       API_BASE_URL:
