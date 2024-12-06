@@ -1,0 +1,283 @@
+openapi: 3.0.0
+info:
+  title: Problems and Solutions API
+  version: 1.0.0
+  description: API documentation for Problems and Solutions application
+servers:
+  - url: http://localhost:5001
+    description: Local development server
+tags:
+  - name: Problems & Solutions
+    description: Operations related to problems and solutions
+
+paths:
+  /api/problems:
+    get:
+      summary: Get all problems
+      description: Retrieve a paginated list of problems.
+      tags:
+        - Problems & Solutions
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            example: 10
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+                  total:
+                    type: integer
+                  totalPages:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Problem'
+        500:
+          description: Server error
+    post:
+      summary: Add a new problem
+      description: Create a new problem in the database.
+      tags:
+        - Problems & Solutions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProblemInput'
+      responses:
+        201:
+          description: Problem created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        400:
+          description: Bad request
+        500:
+          description: Server error
+
+  /api/problems/{id}:
+    get:
+      summary: Get a single problem
+      description: Retrieve a problem by its ID.
+      tags:
+        - Problems & Solutions
+      parameters:
+        - name: id
+          in: path
+          description: ID of the problem to retrieve
+          required: true
+          schema:
+            type: string
+            example: 64a67e2f9b0e1d23c8c1b2d7
+      responses:
+        200:
+          description: Problem retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        400:
+          description: Invalid ID format
+        404:
+          description: Problem not found
+        500:
+          description: Server error
+  
+    put:
+      summary: Update a problem
+      description: Update the details of a specific problem by ID.
+      tags:
+        - Problems & Solutions
+      parameters:
+        - name: id
+          in: path
+          description: ID of the problem to update
+          required: true
+          schema:
+            type: string
+            example: 64a67e2f9b0e1d23c8c1b2d7
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProblemInput'
+      responses:
+        200:
+          description: Problem updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        400:
+          description: Invalid ID format or bad request
+        404:
+          description: Problem not found
+        500:
+          description: Server error
+
+    delete:
+      summary: Delete a problem
+      description: Delete a specific problem by ID.
+      tags:
+        - Problems & Solutions
+      parameters:
+        - name: id
+          in: path
+          description: ID of the problem to delete
+          required: true
+          schema:
+            type: string
+            example: 64a67e2f9b0e1d23c8c1b2d7
+      responses:
+        200:
+          description: Problem deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Problem deleted successfully."
+        400:
+          description: Invalid ID format
+        404:
+          description: Problem not found
+        500:
+          description: Server error
+
+
+components:
+  schemas:
+    Problem:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the problem
+          example: 64a67e2f9b0e1d23c8c1b2d7
+        problem_name:
+          type: string
+          description: The name of the problem
+          example: "Lack of access to clean water"
+        sector:
+          type: string
+          description: The sector associated with the problem
+          example: "Water & Sanitation"
+        problem_description:
+          type: string
+          description: Detailed description of the problem
+          example: "Communities lack access to clean water for daily use."
+        affected_regions:
+          type: array
+          items:
+            type: string
+          description: List of regions affected by the problem
+          example:
+            - Sub-Saharan Africa
+            - South Asia
+        solution_name:
+          type: string
+          description: Name of the solution implemented
+          example: "Water filtration systems"
+        solution_description:
+          type: string
+          description: Detailed description of the solution
+          example: "Deploying affordable water filters to rural communities."
+        technology_used:
+          type: array
+          items:
+            type: string
+          description: Technologies used to address the problem
+          example:
+            - Filtration
+            - Reverse osmosis
+        adaptation_required:
+          type: string
+          description: Adaptations needed for local implementation
+          example: "Local language training on filter use."
+        examples_in_africa:
+          type: array
+          items:
+            type: string
+          description: Examples of similar solutions implemented in Africa
+          example:
+            - "WaterAid projects in Kenya"
+            - "UNICEF initiatives in Nigeria"
+    ProblemInput:
+      type: object
+      required:
+        - problem_name
+        - sector
+      properties:
+        problem_name:
+          type: string
+          description: The name of the problem
+          example: "Lack of access to clean water"
+        sector:
+          type: string
+          description: The sector associated with the problem
+          example: "Water & Sanitation"
+        problem_description:
+          type: string
+          description: Detailed description of the problem
+          example: "Communities lack access to clean water for daily use."
+        affected_regions:
+          type: array
+          items:
+            type: string
+          description: List of regions affected by the problem
+          example:
+            - Sub-Saharan Africa
+            - South Asia
+        solution_name:
+          type: string
+          description: Name of the solution implemented
+          example: "Water filtration systems"
+        solution_description:
+          type: string
+          description: Detailed description of the solution
+          example: "Deploying affordable water filters to rural communities."
+        technology_used:
+          type: array
+          items:
+            type: string
+          description: Technologies used to address the problem
+          example:
+            - Filtration
+            - Reverse osmosis
+        adaptation_required:
+          type: string
+          description: Adaptations needed for local implementation
+          example: "Local language training on filter use."
+        examples_in_africa:
+          type: array
+          items:
+            type: string
+          description: Examples of similar solutions implemented in Africa
+          example:
+            - "WaterAid projects in Kenya"
+            - "UNICEF initiatives in Nigeria"
