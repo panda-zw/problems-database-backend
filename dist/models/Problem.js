@@ -45,5 +45,7 @@ const ProblemSchema = new mongoose_1.Schema({
     adaptation_required: { type: String },
     examples_in_africa: { type: [String] },
     references: { type: [String] },
-});
-exports.default = mongoose_1.default.model('Problem', ProblemSchema);
+    deleted_at: { type: Date, default: null },
+}, { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } } // Enable timestamps
+);
+exports.default = mongoose_1.default.model("Problem", ProblemSchema);

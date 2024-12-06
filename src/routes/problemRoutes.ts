@@ -13,8 +13,10 @@ router.get(
       const skip = (page - 1) * limit;
 
       const [problems, total] = await Promise.all([
-        Problem.find().skip(skip).limit(limit),
-        Problem.countDocuments(),
+        Problem.find({ deleted_at: { $exists: false } }) // Exclude soft-deleted problems
+          .skip(skip)
+          .limit(limit),
+        Problem.countDocuments({ deleted_at: { $exists: false } }), // Count non-deleted problems
       ]);
 
       res.status(200).json({
@@ -44,7 +46,10 @@ router.post("/", async (req: Request, res: Response) => {
 // Get a single problem by ID
 router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   try {
-    const problem = await Problem.findById(req.params.id);
+    const problem = await Problem.findOne({
+      _id: req.params.id,
+      deleted_at: { $exists: false }, // Exclude soft-deleted problem
+    });
     if (!problem) {
       res.status(404).json({ message: "Problem not found" });
       return;
@@ -59,7 +64,10 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
 router.put("/:id", async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
 
-  const problem = await Problem.findById(id);
+  const problem = await Problem.findOne({
+    _id: id,
+    deleted_at: { $exists: false }, // Exclude soft-deleted problem
+  });
   if (!problem) {
     res.status(404).json({ message: "Problem not found" });
     return;
@@ -71,11 +79,6 @@ router.put("/:id", async (req: Request, res: Response): Promise<void> => {
       runValidators: true, // Validate before saving
     });
 
-    if (!updatedProblem) {
-      res.status(404).json({ message: "Problem not found" });
-      return;
-    }
-
     res.status(200).json(updatedProblem);
   } catch (error: any) {
     console.error("Error updating problem:", error);
@@ -83,30 +86,28 @@ router.put("/:id", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-/**
- * Delete Problem by ID
- * @route DELETE /api/problems/:id
- */
+// Soft delete a problem by ID
 router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
 
-  const problem = await Problem.findById(id);
+  const problem = await Problem.findOne({
+    _id: id,
+    deleted_at: { $exists: false }, // Ensure it's not already deleted
+  });
   if (!problem) {
-    res.status(404).json({ message: "Problem not found" });
+    res.status(404).json({ message: "Problem not found or already deleted" });
     return;
   }
 
   try {
-    const deletedProblem = await Problem.findByIdAndDelete(id);
+    problem.deleted_at = new Date(); // Set the deleted_at field
+    await problem.save();
 
-    if (!deletedProblem) {
-      res.status(404).json({ message: "Problem not found" });
-      return;
-    }
-
-    res.status(200).json({ message: "Problem deleted successfully" });
+    res
+      .status(200)
+      .json({ message: "Problem deleted successfully (soft delete)" });
   } catch (error: any) {
-    console.error("Error deleting problem:", error);
+    console.error("Error soft deleting problem:", error);
     res.status(500).json({ message: error.message });
   }
 });
