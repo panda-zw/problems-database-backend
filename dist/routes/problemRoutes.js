@@ -13,27 +13,37 @@ router.get("/", async (req, res, next) => {
         const limit = Math.max(1, parseInt(req.query.limit) || 10);
         const search = req.query.search?.toString().trim() || "";
         const skip = (page - 1) * limit;
-        // Build the query object
-        const query = { deleted_at: { $exists: false } };
+        // Initialize the query
+        const query = {
+            $and: [
+                {
+                    $or: [
+                        { deleted_at: { $exists: false } },
+                        { deleted_at: null },
+                    ],
+                },
+            ],
+        };
+        // Add search conditions
         if (search) {
-            // Check if search is partial (shorter than 3 characters or no full words)
             const isPartialSearch = search.length < 3 || !/\s/.test(search);
             if (isPartialSearch) {
-                query.$or = [
-                    { problem_name: { $regex: search, $options: "i" } },
-                    { sector: { $regex: search, $options: "i" } },
-                    { problem_description: { $regex: search, $options: "i" } },
-                    { affected_regions: { $regex: search, $options: "i" } },
-                    { solution_name: { $regex: search, $options: "i" } },
-                    { solution_description: { $regex: search, $options: "i" } },
-                    { technology_used: { $regex: search, $options: "i" } },
-                    { adaptation_required: { $regex: search, $options: "i" } },
-                    { examples_in_africa: { $regex: search, $options: "i" } },
-                ];
+                query.$and.push({
+                    $or: [
+                        { problem_name: { $regex: search, $options: "i" } },
+                        { sector: { $regex: search, $options: "i" } },
+                        { problem_description: { $regex: search, $options: "i" } },
+                        { affected_regions: { $regex: search, $options: "i" } },
+                        { solution_name: { $regex: search, $options: "i" } },
+                        { solution_description: { $regex: search, $options: "i" } },
+                        { technology_used: { $regex: search, $options: "i" } },
+                        { adaptation_required: { $regex: search, $options: "i" } },
+                        { examples_in_africa: { $regex: search, $options: "i" } },
+                    ],
+                });
             }
             else {
-                // Use full-text search for longer, more specific queries
-                query.$text = { $search: search };
+                query.$and.push({ $text: { $search: search } });
             }
         }
         const [problems, total] = await Promise.all([
