@@ -30,7 +30,16 @@ const ProblemSchema: Schema = new Schema(
     references: { type: [String] },
     deleted_at: { type: Date, default: null },
   },
-  { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } } // Enable timestamps
+  { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }
 );
+
+// Create a text index on relevant fields for full-text search
+ProblemSchema.index({
+  problem_name: "text",
+  sector: "text",
+  problem_description: "text",
+  solution_name: "text",
+  solution_description: "text",
+});
 
 export default mongoose.model<IProblem>("Problem", ProblemSchema);

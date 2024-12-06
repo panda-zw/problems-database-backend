@@ -10,13 +10,23 @@ router.get(
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1);
       const limit = Math.max(1, parseInt(req.query.limit as string) || 10);
+      const search = req.query.search?.toString().trim() || "";
+
       const skip = (page - 1) * limit;
 
+      const query: Record<string, any> = { deleted_at: { $exists: false } };
+
+      // Full-text search or regex fallback
+      if (search) {
+        query.$text = { $search: search };
+      }
+
       const [problems, total] = await Promise.all([
-        Problem.find({ deleted_at: { $exists: false } }) // Exclude soft-deleted problems
+        Problem.find(query)
+          .select("problem_name sector problem_description affected_regions solution_name solution_description technology_used adaptation_required examples_in_africa references") // Select only required fields
           .skip(skip)
           .limit(limit),
-        Problem.countDocuments({ deleted_at: { $exists: false } }), // Count non-deleted problems
+        Problem.countDocuments(query),
       ]);
 
       res.status(200).json({
@@ -31,6 +41,7 @@ router.get(
     }
   }
 );
+
 
 // Add a new problem
 router.post("/", async (req: Request, res: Response) => {

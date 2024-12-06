@@ -36,6 +36,13 @@ paths:
           schema:
             type: integer
             example: 10
+        - name: search
+          in: query
+          description: Search term to filter problems based on text fields
+          required: false
+          schema:
+            type: string
+            example: "water"
       responses:
         "200":
           description: Successful response
