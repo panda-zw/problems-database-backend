@@ -11,7 +11,7 @@ const options = {
     },
     servers: [
       {
-        url: "http://localhost:5001",
+        url: `${process.env.BASE_URL || "http://localhost:5001"}`,
         description: "Development Server",
       },
     ],
