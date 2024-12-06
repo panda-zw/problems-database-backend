@@ -15,7 +15,12 @@ router.get(
       const skip = (page - 1) * limit;
 
       // Build the query object
-      const query: Record<string, any> = { deleted_at: { $exists: false } };
+      const query: Record<string, any> = { 
+        $or: [
+          { deleted_at: { $exists: false } }, 
+          { deleted_at: null }
+        ]
+      };
 
       if (search) {
         // Check if search is partial (shorter than 3 characters or no full words)
